@@ -8,19 +8,24 @@ public class Day1 {
 
   public static void main(String... args) throws Exception {
     List<String> data = Utils.readFromFile("src/main/resources/jwang/y2022/Day1Input.txt");
-    Maxes max = new Maxes();
+    Maxes maxes = new Maxes();
+    int max = 0;
     int sum = 0;
     for (String line : data) {
       if (line == null || line.length() == 0) {
-        max.compareAndUpdate(sum);
+        maxes.compareAndUpdate(sum);
+        if (sum > max) {
+          max = sum;
+        }
         sum = 0;
       }
       else {
-        sum += Integer.valueOf(line);
+        sum += Integer.parseInt(line);
       }
     }
-    max.compareAndUpdate(sum);
-    System.out.println(max.total());
+    maxes.compareAndUpdate(sum);
+    System.out.println(max);
+    System.out.println(maxes.total());
   }
 
   static class Maxes {
