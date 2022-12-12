@@ -1,0 +1,12 @@
+[package]
+name = "AdventOfCoding"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "advent_of_code_rust"
+path = "src/main/rust/jwang/main.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]

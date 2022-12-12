@@ -30,3 +30,9 @@ build
 
 # ide specifics
 .idea
+*.iml
+*.ipr
+*.iws
+
+# Added by cargo
+/target
