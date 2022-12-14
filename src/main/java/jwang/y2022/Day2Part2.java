@@ -1,10 +1,9 @@
 package jwang.y2022;
 
 import com.google.common.collect.Lists;
-import utils.Utils;
+import jwang.utils.Utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Day2Part2 {

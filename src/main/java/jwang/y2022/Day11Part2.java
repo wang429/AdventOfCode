@@ -1,7 +1,7 @@
 package jwang.y2022;
 
 import com.google.common.collect.ImmutableMap;
-import utils.Utils;
+import jwang.utils.Utils;
 
 import java.util.*;
 
