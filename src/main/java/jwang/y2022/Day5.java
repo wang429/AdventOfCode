@@ -31,7 +31,7 @@ public class Day5 {
 
       Stack<Character> initStack = stacks.get(init);
       Stack<Character> destStack = stacks.get(dest);
-      System.out.printf("%s: %d\n\t%d: %s\n\t%d: %s\n--------------------\n",
+      System.out.printf("%s: %d%n\t%d: %s%n\t%d: %s%n--------------------%n",
           step, moveCount, init, initStack, dest, destStack);
 
 //      moveCratesPart1(moveCount, initStack, destStack);
@@ -75,7 +75,7 @@ public class Day5 {
     int n = stacksInput.get(0).length();
     List<Stack<Character>> stacks = new ArrayList<>();
     for (int i = 1; i < n; i+=4) { // iterate over chars in string
-      Stack stack = new Stack();
+      Stack<Character> stack = new Stack<>();
       for (int j = 1; j < stacksInput.size(); j++) { // iterate over strings
         char c = stacksInput.get(stacksInput.size() - j - 1).charAt(i);
         if (c == ' ') {
