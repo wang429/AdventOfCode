@@ -18,7 +18,7 @@ public class Day12 {
   };
 
   public static void main(String[] args) throws IOException {
-    List<String> input = Utils.readFromFile("src/main/resources/Day12Input.txt");
+    List<String> input = Utils.readFromFile("src/main/resources/jwang/y2022/Day12Input.txt");
 //        input = Arrays.asList(test);
 
     char[][] map = new char[input.size()][];
