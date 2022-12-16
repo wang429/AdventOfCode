@@ -1,13 +1,13 @@
 package jwang.utils.graphing;
 
-import jwang.utils.graphing.Node;
+import jwang.utils.NamedEntity;
 
 import java.util.*;
 import java.util.function.*;
 
 public class AStar {
-  public static List<Node> reconstructPath(Map<Node, Node> nodes, Node current) {
-    List<Node> path = new ArrayList<>();
+  public static <T extends NamedEntity> List<Node<T>> reconstructPath(Map<Node<T>, Node<T>> nodes, Node<T> current) {
+    List<Node<T>> path = new ArrayList<>();
     path.add(current);
     while(nodes.containsKey(current)) {
       current = nodes.remove(current);
@@ -16,34 +16,34 @@ public class AStar {
     return path;
   }
 
-  public static List<Node> aStar(Node start, Node target) {
-    return aStar(start, target::equals, node -> node.heuristic(target));
+  public static <T extends NamedEntity> List<Node<T>> aStar(Node<T> start, Node<T> target, ToDoubleBiFunction<Node<T>, Node<T>> heuristic) {
+    return aStar(start, target::equals, n -> heuristic.applyAsDouble(n, target));
   }
 
-  public static List<Node> aStar(Node start, Predicate<Node> endCondition, ToDoubleFunction<Node> heuristic) {
+  public static <T extends NamedEntity> List<Node<T>> aStar(Node<T> start, Predicate<Node<T>> endCondition, ToDoubleFunction<Node<T>> heuristic) {
     // distances from start
-    Map<Node, Double> knownDistances = new HashMap<>();
+    Map<Node<T>, Double> knownDistances = new HashMap<>();
     knownDistances.put(start, 0D);
 
     // cheapest best guesses
-    Map<Node, Double> estimations = new HashMap<>();
+    Map<Node<T>, Double> estimations = new HashMap<>();
     estimations.put(start, heuristic.applyAsDouble(start));
 
-    Map<Node, Node> cameFrom = new HashMap<>();
+    Map<Node<T>, Node<T>> cameFrom = new HashMap<>();
 
-    PriorityQueue<Node> openList = new PriorityQueue<>(
+    PriorityQueue<Node<T>> openList = new PriorityQueue<>(
         Comparator.comparingDouble(n -> estimations.getOrDefault(n, Double.POSITIVE_INFINITY)));
     openList.add(start);
 
     while(!openList.isEmpty()){
-      Node node = openList.poll();
+      Node<T> node = openList.poll();
       if (endCondition.test(node)){
         return reconstructPath(cameFrom, node);
       }
 
       for (Node.Edge edge : node.neighbors) {
         double currentKnownDistance = estimations.getOrDefault(node, Double.POSITIVE_INFINITY) + edge.weight;
-        Node neighbor = edge.node;
+        Node<T> neighbor = edge.node;
         if (currentKnownDistance < knownDistances.getOrDefault(neighbor, Double.POSITIVE_INFINITY)) {
           cameFrom.put(neighbor, node);
           knownDistances.put(neighbor, currentKnownDistance);
