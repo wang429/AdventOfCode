@@ -9,7 +9,6 @@ public class Coord extends NamedEntity {
   public final int i;
   public final int j;
   public final char c;
-  final String name;
 
   public Coord(int i, int j, char c) {
     this.i = i;

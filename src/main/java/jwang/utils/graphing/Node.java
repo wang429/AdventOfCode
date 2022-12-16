@@ -17,14 +17,14 @@ public class Node<T extends NamedEntity> {
     this.neighbors = new ArrayList<>();
   }
 
-  public static class Edge {
-    Edge(int weight, Node node){
+  public class Edge {
+    Edge(double weight, Node<T> node){
       this.weight = weight;
       this.node = node;
     }
 
-    public final double weight;
-    public final Node node;
+    public double weight;
+    public final Node<T> node;
 
     @Override
     public String toString() {
@@ -32,7 +32,7 @@ public class Node<T extends NamedEntity> {
     }
   }
 
-  public void addBranch(int weight, Node node){
+  public void addBranch(double weight, Node<T> node){
     Edge newEdge = new Edge(weight, node);
     neighbors.add(newEdge);
   }
@@ -50,7 +50,7 @@ public class Node<T extends NamedEntity> {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    Node node = (Node) o;
+    Node<?> node = (Node<?>) o;
     return entity.equals(node.entity);
   }
 

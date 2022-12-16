@@ -41,7 +41,7 @@ public class AStar {
         return reconstructPath(cameFrom, node);
       }
 
-      for (Node.Edge edge : node.neighbors) {
+      node.neighbors.forEach(edge -> {
         double currentKnownDistance = estimations.getOrDefault(node, Double.POSITIVE_INFINITY) + edge.weight;
         Node<T> neighbor = edge.node;
         if (currentKnownDistance < knownDistances.getOrDefault(neighbor, Double.POSITIVE_INFINITY)) {
@@ -52,7 +52,7 @@ public class AStar {
             openList.add(neighbor);
           }
         }
-      }
+      });
     }
     return null;
   }
