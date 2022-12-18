@@ -3,7 +3,8 @@ package jwang.y2022;
 import jwang.utils.Utils;
 
 import java.util.*;
-import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Day17 {
 
@@ -15,71 +16,95 @@ public class Day17 {
   public static void main(String[] args) throws Exception {
     List<String> input = Utils.readFromFile("src/main/resources/jwang/y2022/Day17Input.txt");
 
-    int iterations = 15;
-    input = test;
+    int iterations = ITERATIONS;
+//    input = test;
 //    input = Collections.singletonList("<<<<<<<<>>><><<<<<>><<<<<<<<<<<<");
     boolean testMode = input.equals(test);
-
-    long start = System.currentTimeMillis();
 
     // < is 60, > is 62
     int[] dirs = input.get(0).chars().map(i -> i-61).toArray();
 
-    RockStack room = new RockStack(5000, 7);
+    RockStack room1 = new RockStack(5000, 7);
+    RockStack room2 = new RockStack(5000, 7);
     Rock[] rocks = Rock.values();
-    int dirCount = 0;
-    for (int i = 0; i < iterations; i++) {
-      dirCount = dropRock(iterations, testMode, dirs, room, rocks[i % rocks.length], dirCount);
-    }
-
+    // part 1
+    long start = System.currentTimeMillis();
+    part1(iterations, testMode, dirs, room1, rocks);
     long end = System.currentTimeMillis();
-    printRoom(room, null, 0, 0);
+    if (true) {
+      printRoom(true, room1, null, 0, 0);
+    }
+    else {
+      System.out.println(room1.top);
+    }
     System.out.println(end - start);
+    // part 2
+    part2(dirs, room2, rocks);
   }
 
-  private static int dropRock(int iterations, boolean testMode, int[] dirs, RockStack room, Rock rock, int dirCount) {
+  static void part1(int iterations, boolean testMode, int[] dirs, RockStack room, Rock[] rocks) {
+    int dirCount = 0;
+    for (int i = 0; i < iterations; i++) {
+      dirCount = dropRock(iterations < 20, testMode, dirs, room, rocks[i % rocks.length], dirCount);
+    }
+    System.out.println(dirCount);
+  }
+
+  static long part2(int[] dirs, RockStack room, Rock[] rocks) {
+    System.out.println(dirs.length * rocks.length);
+    return 0l;
+  }
+
+  static int dropRock(boolean doPrint, boolean testMode, int[] dirs, RockStack room, Rock rock, int dirCount) {
     int x = 2;
     int y = 3 + room.top;
-    if (iterations < 20) {
+    if (doPrint) {
       System.out.println("New rock: " + rock.name());
-      printRoom(room, rock, x, y);
+      printRoom(doPrint, room, rock, x, y);
     }
 
+    room.stack.ensureCapacity(y + 4);
+
     while (true) {
-      int dir = dirs[dirCount];
-      if (iterations < 20) {
+      int dir = dirs[dirCount % dirs.length];
+      if (doPrint) {
+        System.out.println(Arrays.stream(dirs).mapToObj(d -> (char) (d + 61)).map(String::valueOf).collect(Collectors.joining()));
+        System.out.println(IntStream.range(0,dirCount).mapToObj(j -> " ").collect(Collectors.joining()) + "^");
         System.out.println(dirCount + " " + dir + " " + ((char) (dir + 61)) + " " + (dir < 0 ? "Push left" : "Push right"));
       }
-      dirCount = (dirCount + 1) % dirs.length;
+      dirCount++;
       if (room.testRockHorizontal(rock, x, y, dir)) {
         x += dir;
       }
+      printRoom(doPrint, room, rock, x, y);
       if (room.testRockVertical(rock, x, y)) {
         y--;
       }
       else {
-        if (iterations < 20) {
-          printRoom(room, rock, x, y);
-        }
+        printRoom(doPrint, room, rock, x, y);
         break;
       }
-
-      if (iterations < 20) {
-        printRoom(room, rock, x, y);
-      }
+      printRoom(doPrint, room, rock, x, y);
     }
     room.addRock(rock, x, y);
     room.top = Math.max(room.top, y + rock.h);
     if (testMode) {
-      System.out.println(room.top);
+      printRoom(doPrint, room, null, x, y);
     }
     return dirCount;
   }
 
-  private static void printRoom(RockStack room, Rock rock, int x, int y) {
-    String[][] str = new String[room.top + 7][room.width];
+  private static void printRoom(boolean doPrint, RockStack room, Rock rock, int x, int y) {
+    if (!doPrint) {
+      return;
+    }
+    printStack(room.stack, room.top, room.width, rock, x, y);
+  }
+
+  static void printStack(ArrayList<boolean[]> stack, int top, int width, Rock rock, int x, int y) {
+    String[][] str = new String[top + 7][width];
     for (int i = 0; i < str.length; i++) {
-      boolean[] row = room.stack.get(i);
+      boolean[] row = stack.get(i);
       for (int j = 0; j < str[i].length; j++) {
         String val;
         if (rock != null && 0 <= i - y && i - y < rock.h && 0 <= j - x && j - x < rock.w && rock.shape[i - y][j - x]) {
@@ -98,12 +123,12 @@ public class Day17 {
       System.out.println("|");
     });
     System.out.println("+-------+");
-    System.out.println(room.top);
+    System.out.println(top);
     System.out.println();
   }
 
   static class RockStack {
-    List<boolean[]> stack;
+    ArrayList<boolean[]> stack;
     final int width;
     int top;
 
@@ -124,20 +149,20 @@ public class Day17 {
      * @return is true if the rock can move in the direction provided, else false;
      */
     boolean testRockHorizontal(Rock rock, int x, int y, int dir) {
-      if (x+dir < 0 || x+dir+rock.w > width) {
+      if (x + dir < 0 || rock.w - 1 + x + dir >= width) {
         return false;
       }
       // check if rock fits into stack
       for (int i = 0; i < rock.shape.length; i++) {
         for (int j = 0; j < rock.shape[i].length; j++) {
-          boolean rockAtNextLoc = stack.get(i + y)[j + x + dir];
           if (dir < 0) {
+            boolean rockAtNextLoc = stack.get(i + y)[j + x + dir];
             if (rock.shape[i][j] && rockAtNextLoc) {
               return false;
             }
-          }
-          else {
-            if (rock.shape[i][rock.w-1-j] && rockAtNextLoc) {
+          } else {
+            boolean rockAtNextLoc = stack.get(i + y)[rock.w - j - 1 + x + dir];
+            if (rock.shape[i][rock.w - j - 1] && rockAtNextLoc) {
               return false;
             }
           }
