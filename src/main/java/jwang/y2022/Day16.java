@@ -25,7 +25,7 @@ public class Day16 {
 
   public static void main(String[] args) throws Exception {
     List<String> input = Utils.readFromFile("src/main/resources/jwang/y2022/Day16Input.txt");
-    input = test;
+//    input = test;
     boolean testMode = input.equals(test);
 
     Map<String, Node<Valve>> nodes = new HashMap<>();
@@ -66,24 +66,20 @@ public class Day16 {
 
     Node<Valve> curr = nodes.get("AA");
     long start = System.currentTimeMillis();
-    System.out.println(part1(shortestPaths, curr, 0, 30, new ArrayList<>()));
+    System.out.println(part1(shortestPaths, curr, 30, new ArrayList<>()));
     System.out.println(System.currentTimeMillis() - start);
     start = System.currentTimeMillis();
-    System.out.println(part1Redux(nodes, curr));
+    System.out.println(part2(shortestPaths, nodes, 30, curr, 30, new ArrayList<>(), 0));
     System.out.println(System.currentTimeMillis() - start);
     start = System.currentTimeMillis();
-    System.out.println(f(nodes, new HashMap<>(90_000_000), 26, curr, new ArrayList<>(), 26, 1));
+    System.out.println(part2(shortestPaths, nodes, 26, curr, 26, new ArrayList<>(), 1));
     System.out.println(System.currentTimeMillis() - start);
   }
 
   static int part1(ListMultimap<String, NodePathWrapper> shortestPaths,
                    Node<Valve> curr,
-                   int totalRate,
                    int timeRemaining,
                    List<String> pathTaken) {
-    if (pathTaken.contains(curr.getId())) {
-      return 0;
-    }
     List<String> nextPath = Lists.newArrayList(pathTaken);
     nextPath.add(curr.getId());
     int releasedByValve = curr.entity.rate * timeRemaining;
@@ -91,55 +87,66 @@ public class Day16 {
       return releasedByValve;
     }
     int max = 0;
-//    System.out.printf("Time remaining: %2s, rate: %3s, released: %4s, node: %s%ncurrent path taken: %s%n",
-//        timeRemaining, totalRate, releasedByValve, curr, pathTaken);
     for (NodePathWrapper pathWrapper : shortestPaths.get(curr.getId())) {
       List<Node<Valve>> path = pathWrapper.path;
       Node<Valve> next = path.get(path.size() - 1);
+      if (pathTaken.contains(next.getId())) {
+        continue;
+      }
       max = Math.max(max, part1(shortestPaths,
           next,
-          totalRate + next.entity.rate,
           timeRemaining - (path.size()),
           nextPath));
     }
     return releasedByValve + max;
   }
 
-  static int part1Redux(Map<String, Node<Valve>> nodes,
-                        Node<Valve> curr) {
-    return f(nodes, new HashMap<>(), 30, curr, new ArrayList<>(), 30, 0);
-  }
-
-  static int f(Map<String, Node<Valve>> nodes,
-               Map<Integer, Integer> dpMap,
-               int maxTime,
-               Node<Valve> curr,
-               List<String> opened,
-               int time,
-               int otherPlayers) {
-    if (time == 0) {
-      return otherPlayers > 0 ? f(nodes, dpMap, maxTime, nodes.get("AA"), opened, maxTime, otherPlayers-1) : 0;
+  static int part2(ListMultimap<String, NodePathWrapper> shortestPaths,
+                   Map<String, Node<Valve>> nodes,
+                   int totalTime,
+                   Node<Valve> curr,
+                   int timeRemaining,
+                   List<String> pathTaken,
+                   int otherPlayers)
+  {
+    if (timeRemaining < 0 || otherPlayers < 0) {
+      System.out.println("time remaining: " + timeRemaining + ", other players: " + otherPlayers);
     }
-
-    int key = Objects.hash(opened, curr, time, otherPlayers);
-    if (dpMap.containsKey(key)) {
-      return dpMap.get(key);
+    List<String> nextPath = Lists.newArrayList(pathTaken);
+    nextPath.add(curr.getId());
+    if (timeRemaining == 0) {
+      return otherPlayers > 0 ? part2(shortestPaths, nodes, totalTime, nodes.get("AA"), totalTime, pathTaken, otherPlayers - 1): 0;
     }
-
     int max = 0;
-    int rate = curr.entity.rate;
-    if (!opened.contains(curr.getId()) && rate > 0) {
-      List<String> newOpened = Lists.newArrayList(opened);
-      newOpened.add(curr.getId());
-      max = Math.max(max, (time-1) * rate + f(nodes, dpMap, maxTime, curr, newOpened, time-1, otherPlayers));
+    for (NodePathWrapper pathWrapper : shortestPaths.get(curr.getId())) {
+      List<Node<Valve>> path = pathWrapper.path;
+      Node<Valve> next = path.get(path.size() - 1);
+      if (pathTaken.contains(next.getId())) {
+        // we've been here before, don't come this way
+        continue;
+      }
+      // what if we just stood still for the rest of the time
+      int nextRelease = part2(shortestPaths,
+          nodes,
+          totalTime,
+          next,
+          0,
+          nextPath,
+          otherPlayers);
+      if (timeRemaining - path.size() >= 0) {
+        // what if we traveled to the next valve... and had enough time to make it.
+        nextRelease = Math.max(nextRelease,
+            part2(shortestPaths,
+              nodes,
+              totalTime,
+              next,
+              timeRemaining - path.size(),
+              nextPath,
+              otherPlayers));
+      }
+      max = Math.max(max, nextRelease);
     }
-    for (Node<Valve>.Edge neighbor : curr.neighbors) {
-      max = Math.max(max, f(nodes, dpMap, maxTime, neighbor.node, opened, time-1, otherPlayers));
-    }
-
-    dpMap.put(key, max);
-
-    return max;
+    return curr.entity.rate * timeRemaining + max;
   }
 
   /**
