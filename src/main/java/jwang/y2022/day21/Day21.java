@@ -176,13 +176,5 @@ public class Day21 {
       }
       return r.solveForHuman(solveBF.applyAsDouble(d, l.evaluate()));
     }
-
-    double solveA(double b) {
-      return solveAF.applyAsDouble(evaluate(), b);
-    }
-
-    double solveB(double a) {
-      return solveBF.applyAsDouble(a, evaluate());
-    }
   }
 }
